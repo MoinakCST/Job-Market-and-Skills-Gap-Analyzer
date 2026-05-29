@@ -3,15 +3,21 @@ import { Link } from 'react-router-dom'
 import "../auth.form.scss"
 
 const Register = () => {
+
+  const handleSubmit = (e) => {
+      e.preventDefault()
+  }
+
   return (
     <main>
         <div className="form-container">
              <h1>Register</h1>
              
-             <form>
+             <form onSubmit={handleSubmit}>
+
                 <div className="input-group">
-                    <label htmlFor="name">Full Name</label>
-                    <input type = "text" id="name" name='name' placeholder='Enter full name'/>
+                    <label htmlFor="name">Username</label>
+                    <input type = "text" id="name" name='name' placeholder='Enter username'/>
                 </div>
                 <div className="input-group">
                     <label htmlFor="email">Email</label>

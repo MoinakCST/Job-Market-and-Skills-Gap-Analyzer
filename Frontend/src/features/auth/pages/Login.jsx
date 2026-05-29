@@ -8,8 +8,6 @@ const Login = () => {
       e.preventDefault()
   }
 
-
-
   return (
     <main>
         <div className="form-container">
