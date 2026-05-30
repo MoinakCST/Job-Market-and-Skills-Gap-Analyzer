@@ -23,6 +23,8 @@ form {
     display:flex;
     flex-direction: column;
     gap:0.75rem;
+
+
         input{
           border: none;
           outline: none;
@@ -32,5 +34,10 @@ form {
 
         }
   }
+
+    a{
+      color:#e1034d;
+      text-decoration: none;
+    }
 
 }
