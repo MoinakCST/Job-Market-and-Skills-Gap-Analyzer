@@ -1,17 +1,26 @@
-import React from 'react'
+import React,{useState} from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import "../auth.form.scss"
+import { useAuth } from '../hooks/useAuth'
 
 const Register = () => {
   const navigate = useNavigate()
   const [username, setUsername] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
 
+  const {loading,handleRegister} = useAuth()
+  
 
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
       e.preventDefault()
+      await handleRegister({username,email,password})
+      navigate("/")
+  }
+
+  if(loading){
+    return (<main><h1>Loading...</h1></main>)
   }
 
   return (
@@ -46,6 +55,7 @@ const Register = () => {
                 <div className="input-group">
                      <label htmlFor="confirmPassword">Confirm Password</label>
                        <input
+                       onChange={(e)=>{setConfirmPassword(e.target.value)}}
                          type="password"
                           id="confirmPassword"
                           name="confirmPassword"
