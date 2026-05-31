@@ -1,8 +1,14 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import "../auth.form.scss"
 
 const Register = () => {
+  const navigate = useNavigate()
+  const [username, setUsername] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+
+
 
   const handleSubmit = (e) => {
       e.preventDefault()
@@ -17,16 +23,21 @@ const Register = () => {
 
                 <div className="input-group">
                     <label htmlFor="name">Username</label>
-                    <input type = "text" id="name" name='name' placeholder='Enter username'/>
+                    <input 
+                    onChange={(e)=>{setUsername(e.target.value)}}
+                    type = "text" id="name" name='name' placeholder='Enter username'/>
                 </div>
                 <div className="input-group">
                     <label htmlFor="email">Email</label>
-                    <input type = "email" id="email" name='email' placeholder='Enter email address'/>
+                    <input 
+                    onChange={(e)=>{setEmail(e.target.value)}}
+                    type = "email" id="email" name='email' placeholder='Enter email address'/>
                 </div>
                 <div className="input-group">
                      <label htmlFor="password">Password</label>
                        <input
-                         type="password"
+                         onChange={(e)=>{setPassword(e.target.value)}}
+                          type="password"
                           id="password"
                           name="password"
                           placeholder="Enter password"
