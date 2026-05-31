@@ -9,16 +9,17 @@ const api = axios.create({
 export async function register({username,email,password}){
 
     try{
-   const response = await api.post('/api/auth/register',{
-
-    })
+        const response = await api.post('/api/auth/register',{
+            username,email,password
+        })
         return response.data
 
-  }
+    }
 
-  catch(err) {
-            console.log(err)
-  }
+    catch(err) {
+        console.error(err)
+        return null
+    }
 }
 
 export async function login({email,password}){
@@ -31,7 +32,8 @@ export async function login({email,password}){
     }
 
     catch(err) {
-        console.log(err)
+        console.error(err)
+        return null
     }
 }
 
@@ -44,7 +46,8 @@ export async function logout(){
     }
 
     catch(err) {
-        console.log(err)
+        console.error(err)
+        return null
     }
 
 }
@@ -57,7 +60,7 @@ export async function getMe() {
     }
 
     catch(err) {
-            console.log()
+        console.error("Failed to fetch user:", err)
+        return null
     }
 }
-

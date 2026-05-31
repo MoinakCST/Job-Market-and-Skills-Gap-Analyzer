@@ -7,8 +7,9 @@ async function startServer(){
 
   await connectToDB();  // this line is must(fn call)
 
+  app.listen(3000, () => {
+    console.log("server is runnning on port 3000");
+  });
 }
 
-app.listen(3000, () => {
-  console.log("server is runnning on port 3000");
-});
+startServer();
