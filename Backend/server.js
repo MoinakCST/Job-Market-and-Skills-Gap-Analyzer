@@ -1,15 +1,11 @@
 require("dotenv").config();
 const app = require("./src/app");
-const connectToDB = require("./src/config/database");
-const invokeGeminiAi = require("./src/services/ai.service");
+const connectToDB = require("./src/config/database"); 
 
-async function startServer(){
+connectToDB();  // this line is must(fn call)
 
-  await connectToDB();  // this line is must(fn call)
-  await invokeGeminiAi();
+invokeGeminiAi();
   app.listen(3000, () => {
     console.log("server is running on port 3000");
   });
-}
 
-startServer();
