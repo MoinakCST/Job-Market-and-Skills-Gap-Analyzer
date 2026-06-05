@@ -70,4 +70,4 @@ return JSON.parse(response.text)
 
 }
 
-module.exports = invokeGeminiAi
+module.exports = generateInterviewReport
