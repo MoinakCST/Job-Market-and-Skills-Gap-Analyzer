@@ -4,11 +4,77 @@ import "../styles/home.scss"
 const Home = () => {
   const [charCount, setCharCount] = useState(0)
   const [jobDesc, setJobDesc] = useState('')
+  const [selfDescription, setSelfDescription] = useState('')
+  const [resumeFile, setResumeFile] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleJobDescChange = (e) => {
     const text = e.target.value
     setJobDesc(text)
     setCharCount(text.length)
+  }
+
+  const handleResumeChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      setResumeFile(file)
+    }
+  }
+
+  const handleSelfDescriptionChange = (e) => {
+    setSelfDescription(e.target.value)
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+
+    if (!jobDesc.trim()) {
+      setError('Job description is required')
+      return
+    }
+
+    if (!resumeFile && !selfDescription.trim()) {
+      setError('Please upload a resume or provide a self description')
+      return
+    }
+
+    try {
+      setLoading(true)
+      const formData = new FormData()
+      formData.append('jobDescription', jobDesc)
+      formData.append('selfDescription', selfDescription)
+      if (resumeFile) {
+        formData.append('resume', resumeFile)
+      }
+
+      const token = localStorage.getItem('token')
+      const response = await fetch('/api/interview', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      })
+
+      if (!response.ok) {
+        const errData = await response.json()
+        throw new Error(errData.message || 'Failed to generate interview report')
+      }
+
+      const data = await response.json()
+      console.log('Interview report generated:', data)
+      // You can store the report and redirect to results page
+      localStorage.setItem(`interview_${data.interviewReport._id}`, JSON.stringify(data.interviewReport))
+      // Redirect or show success
+      alert('Interview strategy generated successfully!')
+    } catch (err) {
+      console.error('Error:', err)
+      setError(err.message || 'Failed to generate interview report')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -19,7 +85,9 @@ const Home = () => {
           <p>Paste a job description and we'll help you prep an interview game plan</p>
         </div>
 
-        <div className="interview-input-grp">
+        <form onSubmit={handleSubmit} className="interview-input-grp">
+          {error && <div className="error-message" style={{color: 'red', marginBottom: '10px'}}>{error}</div>}
+          
           <div className="left">
             <div className="section-header">
               {/* <span className="icon">📋</span> */}
@@ -33,6 +101,7 @@ const Home = () => {
               onChange={handleJobDescChange}
               placeholder="paste the job description here..."
               maxLength={5000}
+              required
             ></textarea>
             <div className="char-count">{charCount} / 5000</div>
           </div>
@@ -48,7 +117,7 @@ const Home = () => {
                 <label htmlFor="resume" className='file-label'>
                   <div className="upload-content">
                     <span className="upload-icon">📤</span>
-                    <p>drag file here or click</p>
+                    <p>{resumeFile ? resumeFile.name : 'drag file here or click'}</p>
                     <small>PDF, DOC</small>
                   </div>
                 </label>
@@ -57,6 +126,7 @@ const Home = () => {
                   name="resume"
                   id="resume"
                   accept=".pdf,.doc,.docx"
+                  onChange={handleResumeChange}
                 />
               </div>
 
@@ -67,21 +137,23 @@ const Home = () => {
                 <textarea
                   name="selfDescription"
                   id="selfDescription"
+                  value={selfDescription}
+                  onChange={handleSelfDescriptionChange}
                   placeholder="just describe what you know - skills, experience, years in tech, etc..."
                 ></textarea>
               </div>
 
               <div className="info-note">
-                <input type="checkbox" id="useResume" defaultChecked />
+                <input type="checkbox" id="useResume" defaultChecked disabled />
                 <label htmlFor="useResume">Resume or self description required</label>
               </div>
             </div>
 
-            <button className="button primary-button">
-              Generate Strategy
+            <button type="submit" className="button primary-button" disabled={loading}>
+              {loading ? 'Generating...' : 'Generate Strategy'}
             </button>
           </div>
-        </div>
+        </form>
       </div>
     </main>
   );

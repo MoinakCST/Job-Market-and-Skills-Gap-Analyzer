@@ -16,7 +16,8 @@ async function generateInterviewReportController(req, res) {
 
         console.log("🔄 Generating interview report for user:", req.user.id)
         
-        const resumeContent = await (new pdfparse.PDFParse(Uint8Array.from(req.file.buffer))).getText()
+        const resumeData = await pdfparse(req.file.buffer)
+        const resumeContent = { text: resumeData.text }
 
         console.log("📄 Resume parsed, calling AI service...")
         const interviewReportByAi = await generateInterviewReport({
