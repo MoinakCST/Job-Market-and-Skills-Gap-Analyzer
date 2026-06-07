@@ -1,0 +1,262 @@
+.home {
+  width: 100%;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f1019 0%, #1a1a2e 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 1rem;
+}
+
+.container {
+  width: 100%;
+  max-width: 1400px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 3rem;
+  
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 1rem 0;
+    line-height: 1.2;
+    
+    .highlight {
+      color: #ff1b6d;
+      font-style: italic;
+    }
+  }
+  
+  p {
+    font-size: 1rem;
+    color: #999;
+    margin: 0;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+}
+
+.interview-input-grp {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  width: 100%;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+}
+
+.left, .right {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+
+  .icon {
+    font-size: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #fff;
+    margin: 0;
+  }
+
+  .required {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: #ff1b6d;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+}
+
+textarea {
+  width: 100%;
+  min-height: 250px;
+  border: 1px solid #2a2a3e;
+  outline: none;
+  padding: 1rem;
+  border-radius: 8px;
+  background-color: #15161f;
+  resize: vertical;
+  color: #e0e0e0;
+  font-family: system-ui;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  transition: 0.3s ease;
+
+  &::placeholder {
+    color: #666;
+  }
+
+  &:focus {
+    border-color: #ff1b6d;
+    background-color: #1a1b2a;
+  }
+}
+
+.char-count {
+  font-size: 0.75rem;
+  color: #666;
+  text-align: right;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #e0e0e0;
+  }
+
+  p {
+    font-size: 0.9rem;
+    color: #e0e0e0;
+    margin: 0;
+
+    &.highlight {
+      color: #ff1b6d;
+      font-weight: 600;
+    }
+
+    .note {
+      color: #666;
+      font-weight: 400;
+    }
+  }
+}
+
+.upload-area {
+  position: relative;
+  width: 100%;
+}
+
+.file-label {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 2rem;
+  background-color: #15161f;
+  border: 2px dashed #2a2a3e;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s ease;
+  color: #ff1b6d;
+  text-align: center;
+
+  &:hover {
+    border-color: #ff1b6d;
+    background-color: rgba(255, 27, 109, 0.05);
+  }
+
+  .upload-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+
+    .upload-icon {
+      font-size: 2rem;
+    }
+
+    p {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: #e0e0e0;
+      margin: 0;
+    }
+
+    small {
+      color: #666;
+      font-size: 0.85rem;
+    }
+  }
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  color: #666;
+  font-size: 0.9rem;
+  margin: 1rem 0;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: #2a2a3e;
+  }
+}
+
+.info-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: rgba(135, 141, 224, 0.1);
+  border-left: 3px solid #878fe0;
+  border-radius: 5px;
+  margin-top: 0.5rem;
+
+  input[type="checkbox"] {
+    margin-top: 0.25rem;
+    cursor: pointer;
+    accent-color: #ff1b6d;
+  }
+
+  label {
+    font-size: 0.85rem;
+    color: #878fe0;
+    cursor: pointer;
+    margin: 0;
+  }
+}
+
+.primary-button {
+  padding: 0.75rem 2rem;
+  background-color: #ff1b6d;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: auto;
+
+  &:hover {
+    opacity: 0.9;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
