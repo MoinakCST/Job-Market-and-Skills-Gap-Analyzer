@@ -44,7 +44,7 @@ const interviewReportSchema = z.object({
 
 async function debugAIResponse() {
   try {
-    console.log("🔍 Debugging AI response...\n");
+    console.log(" Debugging AI response...\n");
     
     const prompt = `You are an expert career counselor. Analyze this profile:
 
@@ -86,7 +86,7 @@ Generate exactly 2 technical questions with complete answers, 2 behavioral quest
     }
     
   } catch (error) {
-    console.error("❌ Error:", error.message);
+    console.error(" Error:", error.message);
   }
   
   process.exit(0);

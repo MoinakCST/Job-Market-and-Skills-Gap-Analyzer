@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import "../styles/home.scss"
 
 const Home = () => {
+  const navigate = useNavigate()
   const [charCount, setCharCount] = useState(0)
   const [jobDesc, setJobDesc] = useState('')
   const [selfDescription, setSelfDescription] = useState('')
@@ -66,9 +68,12 @@ const Home = () => {
       const data = await response.json()
       console.log('Interview report generated:', data)
       // You can store the report and redirect to results page
-      localStorage.setItem(`interview_${data.interviewReport._id}`, JSON.stringify(data.interviewReport))
+      console.log("Interview ID:", data.interviewReport?._id)
+      localStorage.setItem(`interview_${data.interviewReport._id}`, 
+      JSON.stringify(data.interviewReport))
+
       // Redirect or show success
-      alert('Interview strategy generated successfully!')
+      navigate(`/interview/${data.interviewReport._id}`)
     } catch (err) {
       console.error('Error:', err)
       setError(err.message || 'Failed to generate interview report')
