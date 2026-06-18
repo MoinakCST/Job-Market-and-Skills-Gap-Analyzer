@@ -12,7 +12,7 @@ const Login = () => {
 
 
   const [email, setEmail] = useState("")
-  const [assword, setPassword] = useState("")
+  const [password, setPassword] = useState("")
 
   const handleSubmit =async (e) => {
       e.preventDefault()

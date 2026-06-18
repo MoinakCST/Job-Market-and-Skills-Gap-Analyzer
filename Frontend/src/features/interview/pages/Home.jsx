@@ -95,7 +95,6 @@ const Home = () => {
           
           <div className="left">
             <div className="section-header">
-              {/* <span className="icon">📋</span> */}
               <h2>Job Description</h2>
               {/* <span className="required">Required</span> */}
             </div>
@@ -114,15 +113,15 @@ const Home = () => {
           <div className="right">
             <div className="input-group">
               <div className="section-header">
-                <span className="icon">👤</span>
+                <span className="icon"></span>
                 <h2>Your Info</h2>
               </div>
               <p className='highlight' >Upload Your Resume <small className='note'>(optional)</small></p>
               <div className="upload-area">
                 <label htmlFor="resume" className='file-label'>
                   <div className="upload-content">
-                    <span className="upload-icon">📤</span>
-                    <p>{resumeFile ? resumeFile.name : 'drag file here or click'}</p>
+                    <span className="upload-icon"></span>
+                    <p>{resumeFile ? resumeFile.name : '  Upload your file here..'}</p>
                     <small>PDF, DOC</small>
                   </div>
                 </label>
@@ -144,7 +143,7 @@ const Home = () => {
                   id="selfDescription"
                   value={selfDescription}
                   onChange={handleSelfDescriptionChange}
-                  placeholder="just describe what you know - skills, experience, years in tech, etc..."
+                  placeholder="Just describe what you know - skills, experience, years in tech, etc..."
                 ></textarea>
               </div>
 
