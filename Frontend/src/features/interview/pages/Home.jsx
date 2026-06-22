@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import "../styles/home.scss"
 
 const Home = () => {
+  console.log("HOME COMPONENT RENDERED");
   const navigate = useNavigate()
   const [charCount, setCharCount] = useState(0)
   const [jobDesc, setJobDesc] = useState('')
@@ -29,7 +30,13 @@ const Home = () => {
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
+
+  console.log("FORM SUBMITTED");
+  console.log("jobDesc:", jobDesc);
+  console.log("selfDescription:", selfDescription);
+  console.log("resumeFile:", resumeFile);
+
     setError('')
 
     if (!jobDesc.trim()) {
@@ -52,6 +59,9 @@ const Home = () => {
       }
 
       const token = localStorage.getItem('token')
+      console.log("About to call fetch...")
+      console.log("Token:", token)
+      console.log("FormData prepared")
       const response = await fetch('/api/interview', {
         method: 'POST',
         headers: {

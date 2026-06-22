@@ -1,17 +1,23 @@
 @use "sass:color";
 
 // ── Shared Variables (mirrors home.scss theme) ────────────────────────────────
-$bg-page: #0d1117;
-$bg-card: #161b22;
-$bg-panel: #1c2230;
-$bg-input: #1e2535;
-$border-color: #2a3348;
-$text-primary: #e6edf3;
-$text-muted: #7d8590;
-$accent: #ff2d78;
+$bg-page-start: #0f1019;
+$bg-page-end: #1a1a2e;
+$bg-card: #15161f;
+$bg-panel: #1a1b2a;
+$border-color: #2a2a3e;
+
+$text-heading: #fff;
+$text-body: #e0e0e0;
+$text-muted: #999;
+$text-faint: #666;
+
+$accent: #ff1b6d;
+$accent-secondary: #878fe0;
+
 $font-stack: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-// severity palette
+// severity / score palette
 $severity-high: #ff4d4d;
 $severity-medium: #f5a623;
 $severity-low: #3fb950;
@@ -20,17 +26,38 @@ $severity-low: #3fb950;
     display: none;
 }
 
+// ── Loading State ─────────────────────────────────────────────────────────────
+.loading-screen {
+    width: 100%;
+    min-height: 100vh;
+    background: linear-gradient(135deg, $bg-page-start 0%, $bg-page-end 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    h1 {
+        color: $text-body;
+        font-family: $font-stack;
+        font-size: 1.1rem;
+        font-weight: 500;
+    }
+}
+
 // ── Page Shell ────────────────────────────────────────────────────────────────
 .interview-page {
     width: 100%;
     min-height: 100vh;
-    background-color: $bg-page;
-    color: $text-primary;
+    background: linear-gradient(135deg, $bg-page-start 0%, $bg-page-end 100%);
+    color: $text-body;
     font-family: $font-stack;
     display: flex;
     align-items: stretch;
-    padding: 1.5rem;
+    padding: 1.5rem 1rem;
     box-sizing: border-box;
+
+    * {
+        box-sizing: border-box;
+    }
 }
 
 // ── 3-Column Layout ───────────────────────────────────────────────────────────
@@ -61,15 +88,18 @@ $severity-low: #3fb950;
     justify-content: space-between;
     gap: 0.25rem;
 
-
-
+    .nav-content {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
 
     &__label {
         font-size: 0.7rem;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.08em;
-        color: $text-muted;
+        color: $text-faint;
         padding: 0 0.75rem;
         margin-bottom: 0.5rem;
     }
@@ -92,7 +122,7 @@ $severity-low: #3fb950;
 
         &:hover {
             background-color: $bg-panel;
-            color: $text-primary;
+            color: $text-heading;
         }
 
         &--active {
@@ -115,16 +145,39 @@ $severity-low: #3fb950;
 // ── Center Content ────────────────────────────────────────────────────────────
 .interview-content {
     flex: 1;
+    position: relative;
     padding: 1.75rem 2rem;
     overflow-y: auto;
     min-height: initial;
     max-height: calc(100vh - 3rem);
     padding-bottom: 5rem;
-    align-items: flex-start;
-
 
     section {
         min-height: 100%;
+    }
+}
+
+.view-jd-btn {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.75rem;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: $bg-panel;
+    border: 1px solid $border-color;
+    border-radius: 0.5rem;
+    color: $text-muted;
+    cursor: pointer;
+    transition: 0.2s ease;
+    z-index: 2;
+
+    &:hover {
+        color: $accent;
+        border-color: rgba($accent, 0.4);
+        background-color: rgba($accent, 0.08);
     }
 }
 
@@ -134,12 +187,13 @@ $severity-low: #3fb950;
     gap: 0.75rem;
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
+    padding-right: 2.5rem;
     border-bottom: 1px solid $border-color;
 
     h2 {
         font-size: 1.1rem;
         font-weight: 700;
-        color: $text-primary;
+        color: $text-heading;
         margin: 0;
     }
 
@@ -150,6 +204,82 @@ $severity-low: #3fb950;
         padding: 0.15rem 0.6rem;
         border-radius: 2rem;
         border: 1px solid $border-color;
+    }
+}
+
+// ── Job Description Modal ─────────────────────────────────────────────────────
+.jd-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(#000, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    z-index: 50;
+}
+
+.jd-modal {
+    width: 100%;
+    max-width: 640px;
+    max-height: 80vh;
+    background-color: $bg-card;
+    border: 1px solid $border-color;
+    border-radius: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(#000, 0.5);
+
+    &__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid $border-color;
+        flex-shrink: 0;
+
+        h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 700;
+            color: $text-heading;
+        }
+    }
+
+    &__close {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        background: none;
+        border: none;
+        color: $text-muted;
+        cursor: pointer;
+        border-radius: 0.4rem;
+        transition: 0.2s ease;
+
+        &:hover {
+            color: $text-heading;
+            background-color: $bg-panel;
+        }
+    }
+
+    &__body {
+        padding: 1.5rem;
+        overflow-y: auto;
+
+        p {
+            margin: 0 0 0.85rem 0;
+            font-size: 0.875rem;
+            line-height: 1.65;
+            color: color.adjust($text-muted, $lightness: 15%);
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
     }
 }
 
@@ -197,7 +327,7 @@ $severity-low: #3fb950;
         margin: 0;
         font-size: 0.9rem;
         font-weight: 500;
-        color: $text-primary;
+        color: $text-heading;
         line-height: 1.5;
     }
 
@@ -245,15 +375,15 @@ $severity-low: #3fb950;
         width: fit-content;
 
         &--intention {
-            color: #a78bfa;
-            background-color: rgba(#a78bfa, 0.1);
-            border: 1px solid rgba(#a78bfa, 0.2);
+            color: $accent-secondary;
+            background-color: rgba($accent-secondary, 0.1);
+            border: 1px solid rgba($accent-secondary, 0.2);
         }
 
         &--answer {
-            color: #3fb950;
-            background-color: rgba(#3fb950, 0.1);
-            border: 1px solid rgba(#3fb950, 0.2);
+            color: $severity-low;
+            background-color: rgba($severity-low, 0.1);
+            border: 1px solid rgba($severity-low, 0.2);
         }
     }
 }
@@ -318,7 +448,7 @@ $severity-low: #3fb950;
         margin: 0;
         font-size: 0.95rem;
         font-weight: 600;
-        color: $text-primary;
+        color: $text-heading;
     }
 
     &__tasks {
@@ -376,7 +506,7 @@ $severity-low: #3fb950;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.08em;
-        color: $text-muted;
+        color: $text-faint;
         margin: 0;
         align-self: flex-start;
     }
@@ -407,7 +537,7 @@ $severity-low: #3fb950;
     &__value {
         font-size: 1.6rem;
         font-weight: 800;
-        color: $text-primary;
+        color: $text-heading;
         line-height: 1;
     }
 
@@ -420,7 +550,7 @@ $severity-low: #3fb950;
     &__sub {
         margin: 0;
         font-size: 0.75rem;
-        color: $severity-low;
+        color: $text-muted;
         text-align: center;
     }
 }
@@ -436,7 +566,7 @@ $severity-low: #3fb950;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.08em;
-        color: $text-muted;
+        color: $text-faint;
         margin: 0;
     }
 
@@ -471,5 +601,110 @@ $severity-low: #3fb950;
         color: $severity-low;
         background-color: rgba($severity-low, 0.1);
         border-color: rgba($severity-low, 0.25);
+    }
+}
+
+// ── Shared Button (matches home.scss .primary-button) ─────────────────────────
+.primary-button {
+    padding: 0.7rem 1.25rem;
+    background-color: $accent;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: $font-stack;
+
+    &:hover {
+        opacity: 0.9;
+    }
+
+    &:active {
+        transform: scale(0.97);
+    }
+}
+
+// ── Responsive ─────────────────────────────────────────────────────────────────
+@media (max-width: 900px) {
+    .interview-page {
+        padding: 1rem 0.5rem;
+    }
+
+    .interview-layout {
+        flex-direction: column;
+        border-radius: 0.75rem;
+    }
+
+    .interview-divider {
+        width: auto;
+        height: 1px;
+    }
+
+    .interview-nav {
+        width: 100%;
+        flex-direction: row;
+        align-items: center;
+        padding: 1rem;
+
+        .nav-content {
+            flex-direction: row;
+            flex: 1;
+            overflow-x: auto;
+        }
+
+        &__label {
+            display: none;
+        }
+
+        &__item {
+            white-space: nowrap;
+        }
+
+        .primary-button {
+            width: auto;
+            white-space: nowrap;
+        }
+    }
+
+    .interview-content {
+        max-height: none;
+        padding: 1.5rem;
+    }
+
+    .interview-sidebar {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+
+    .sidebar-divider {
+        display: none;
+    }
+
+    .match-score {
+        flex: 1;
+        min-width: 140px;
+    }
+
+    .skill-gaps {
+        flex: 2;
+        min-width: 200px;
+    }
+}
+
+@media (max-width: 560px) {
+    .jd-modal {
+        max-height: 90vh;
+    }
+
+    .q-card__question {
+        font-size: 0.85rem;
     }
 }
