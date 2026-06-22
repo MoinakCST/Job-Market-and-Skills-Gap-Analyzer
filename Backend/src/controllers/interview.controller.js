@@ -1,5 +1,6 @@
 const generateInterviewReport = require("../services/ai.service");
 const interviewReportModel = require("../models/interviewReport.model");
+const pdfparse = require("pdf-parse");
 
 async function generateInterviewReportController(req, res) {
     try {
@@ -19,7 +20,6 @@ async function generateInterviewReportController(req, res) {
 
         console.log("Generating interview report for user:", req.user.id);
 
-        const pdfparse = (await import("pdf-parse")).default;
         const resumeData = await pdfparse(req.file.buffer);
 
         console.log("========== FILE INFO ==========");
