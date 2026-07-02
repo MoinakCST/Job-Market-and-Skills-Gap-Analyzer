@@ -41,7 +41,9 @@ const interviewReportSchema = z.object({
         .min(3).describe("List of 3-4 specific, actionable tasks to be done on this day"),
     })
   ).min(7).describe("A 7-10 day preparation plan for the candidate to follow"),
-});
+  title: z.string().describe("The title of the job for which it is generated"),
+  
+})
 
 async function generateInterviewReport({ resume, selfDescription, jobDescription }){
 

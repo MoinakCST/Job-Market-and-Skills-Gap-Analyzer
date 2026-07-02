@@ -2,6 +2,12 @@ const generateInterviewReport = require("../services/ai.service");
 const interviewReportModel = require("../models/interviewReport.model");
 const pdfparse = require("pdf-parse");
 
+/**
+ * @description  controller to generate interview report based on user self description ,resume and job description
+ */
+
+
+
 async function generateInterviewReportController(req, res) {
     try {
         if (!req.file) {
@@ -78,6 +84,30 @@ async function generateInterviewReportController(req, res) {
         });
     }
 }
+
+/**
+ * @description  controller to generate interview report by interview id
+ */
+
+
+async function generateInterviewReportByIdController(req,res){
+    
+}
+
+/**
+ * @description Controller to get all interview reports of logged in user
+ */
+
+async function getAllInterviewReportController(req,res){
+    const interviewReports = await interviewReportModel.find({user:req.user.id}).sort({createdAt: -1 }).
+    select("-resume -selfDescription -jobDescription -__v -technicalQuestions.answer -technicalQuestions.explanation -behavioralQuestions -skillGaps -preparationPlan")
+
+    res.status(200).json({
+        message:"Interview reports fetched succcessfully.",
+        interviewReports
+    })
+}
+
 
 module.exports = {
     generateInterviewReportController
