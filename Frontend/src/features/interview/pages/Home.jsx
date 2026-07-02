@@ -1,177 +1,151 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useState, useRef } from 'react'
 import "../styles/home.scss"
-
+import { useInterview } from '../hooks/useInterview.js'
+import { useNavigate } from 'react-router'
 
 const Home = () => {
-  console.log("HOME COMPONENT RENDERED");
-  const navigate = useNavigate()
-  const [charCount, setCharCount] = useState(0)
-  const [jobDesc, setJobDesc] = useState('')
-  const [selfDescription, setSelfDescription] = useState('')
-  const [resumeFile, setResumeFile] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
 
-  const handleJobDescChange = (e) => {
-    const text = e.target.value
-    setJobDesc(text)
-    setCharCount(text.length)
-  }
+    const { loading, generateReport,reports } = useInterview()
+    const [ jobDescription, setJobDescription ] = useState("")
+    const [ selfDescription, setSelfDescription ] = useState("")
+    const resumeInputRef = useRef()
 
-  const handleResumeChange = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      setResumeFile(file)
-    }
-  }
+    const navigate = useNavigate()
 
-  const handleSelfDescriptionChange = (e) => {
-    setSelfDescription(e.target.value)
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-  console.log("FORM SUBMITTED");
-  console.log("jobDesc:", jobDesc);
-  console.log("selfDescription:", selfDescription);
-  console.log("resumeFile:", resumeFile);
-
-    setError('')
-
-    if (!jobDesc.trim()) {
-      setError('Job description is required')
-      return
+    const handleGenerateReport = async () => {
+        const resumeFile = resumeInputRef.current.files[0]
+        const data = await generateReport({ jobDescription, selfDescription, resumeFile })
+        navigate(`/interview/${data._id}`)
     }
 
-    if (!resumeFile && !selfDescription.trim()) {
-      setError('Please upload a resume or provide a self description')
-      return
+    if (loading) {
+        return (
+            <main className='loading-screen'>
+                <h1>Loading your interview plan...</h1>
+            </main>
+        )
     }
 
-    try {
-      setLoading(true)
-      const formData = new FormData()
-      formData.append('jobDescription', jobDesc)
-      formData.append('selfDescription', selfDescription)
-      if (resumeFile) {
-        formData.append('resume', resumeFile)
-      }
+    return (
+        <div className='home-page'>
 
-      const token = localStorage.getItem('token')
-      console.log("About to call fetch...")
-      console.log("Token:", token)
-      console.log("FormData prepared")
-      const response = await fetch('/api/interview', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
-      })
+            {/* Page Header */}
+            <header className='page-header'>
+                <h1>Create Your Custom <span className='highlight'>Interview Plan</span></h1>
+                <p>Let our AI analyze the job requirements and your unique profile to build a winning strategy.</p>
+            </header>
 
-      if (!response.ok) {
-        const errData = await response.json()
-        throw new Error(errData.message || 'Failed to generate interview report')
-      }
+            {/* Main Card */}
+            <div className='interview-card'>
+                <div className='interview-card__body'>
 
-      const data = await response.json()
-      console.log('Interview report generated:', data)
-      // You can store the report and redirect to results page
-      console.log("Interview ID:", data.interviewReport?._id)
-      localStorage.setItem(`interview_${data.interviewReport._id}`, 
-      JSON.stringify(data.interviewReport))
+                    {/* Left Panel - Job Description */}
+                    <div className='panel panel--left'>
+                        <div className='panel__header'>
+                            <span className='panel__icon'>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></svg>
+                            </span>
+                            <h2>Target Job Description</h2>
+                            <span className='badge badge--required'>Required</span>
+                        </div>
+                        <textarea
+                            onChange={(e) => { setJobDescription(e.target.value) }}
+                            className='panel__textarea'
+                            placeholder={`Paste the full job description here...\ne.g. 'Senior Frontend Engineer at Google requires proficiency in React, TypeScript, and large-scale system design...'`}
+                            maxLength={5000}
+                        />
+                        <div className='char-counter'>0 / 5000 chars</div>
+                    </div>
 
-      // Redirect or show success
-      navigate(`/interview/${data.interviewReport._id}`)
-    } catch (err) {
-      console.error('Error:', err)
-      setError(err.message || 'Failed to generate interview report')
-    } finally {
-      setLoading(false)
-    }
-  }
+                    {/* Vertical Divider */}
+                    <div className='panel-divider' />
 
-  return (
-    <main className='home'>
-      <div className="container">
-        <div className="header">
-          <h1>Build Your <span className='highlight'>Interview Strategy</span></h1>
-          <p>Paste a job description and we'll help you prep an interview game plan</p>
+                    {/* Right Panel - Profile */}
+                    <div className='panel panel--right'>
+                        <div className='panel__header'>
+                            <span className='panel__icon'>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                            </span>
+                            <h2>Your Profile</h2>
+                        </div>
+
+                        {/* Upload Resume */}
+                        <div className='upload-section'>
+                            <label className='section-label'>
+                                Upload Resume
+                                <span className='badge badge--best'>Best Results</span>
+                            </label>
+                            <label className='dropzone' htmlFor='resume'>
+                                <span className='dropzone__icon'>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 16 12 12 8 16" /><line x1="12" y1="12" x2="12" y2="21" /><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" /></svg>
+                                </span>
+                                <p className='dropzone__title'>Click to upload or drag &amp; drop</p>
+                                <p className='dropzone__subtitle'>PDF or DOCX (Max 5MB)</p>
+                                <input ref={resumeInputRef} hidden type='file' id='resume' name='resume' accept='.pdf,.docx' />
+                            </label>
+                        </div>
+
+                        {/* OR Divider */}
+                        <div className='or-divider'><span>OR</span></div>
+
+                        {/* Quick Self-Description */}
+                        <div className='self-description'>
+                            <label className='section-label' htmlFor='selfDescription'>Quick Self-Description</label>
+                            <textarea
+                                onChange={(e) => { setSelfDescription(e.target.value) }}
+                                id='selfDescription'
+                                name='selfDescription'
+                                className='panel__textarea panel__textarea--short'
+                                placeholder="Briefly describe your experience, key skills, and years of experience if you don't have a resume handy..."
+                            />
+                        </div>
+
+                        {/* Info Box */}
+                        <div className='info-box'>
+                            <span className='info-box__icon'>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" stroke="#1a1f27" strokeWidth="2" /><line x1="12" y1="16" x2="12.01" y2="16" stroke="#1a1f27" strokeWidth="2" /></svg>
+                            </span>
+                            <p>Either a <strong>Resume</strong> or a <strong>Self Description</strong> is required to generate a personalized plan.</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Card Footer */}
+                <div className='interview-card__footer'>
+                    <span className='footer-info'>AI-Powered Strategy Generation &bull; Approx 30s</span>
+                    <button
+                        onClick={handleGenerateReport}
+                        className='generate-btn'>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" /></svg>
+                        Generate My Interview Strategy
+                    </button>
+                </div>
+            </div>
+
+            {/* Recent Reports List */}
+            {reports?.length > 0 && (
+                <section className='recent-reports'>
+                    <h2>My Recent Interview Plans</h2>
+                    <ul className='reports-list'>
+                        {reports.map(report => (
+                            <li key={report._id} className='report-item' onClick={() => navigate(`/interview/${report._id}`)}>
+                                <h3>{report.title || 'Untitled Position'}</h3>
+                                <p className='report-meta'>Generated on {new Date(report.createdAt).toLocaleDateString()}</p>
+                                <p className={`match-score ${report.matchScore >= 80 ? 'score--high' : report.matchScore >= 60 ? 'score--mid' : 'score--low'}`}>Match Score: {report.matchScore}%</p>
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+            )}
+
+            {/* Page Footer */}
+            <footer className='page-footer'>
+                <a href='#'>Privacy Policy</a>
+                <a href='#'>Terms of Service</a>
+                <a href='#'>Help Center</a>
+            </footer>
         </div>
+    )
+}
 
-        <form onSubmit={handleSubmit} className="interview-input-grp">
-          {error && <div className="error-message" style={{color: 'red', marginBottom: '10px'}}>{error}</div>}
-          
-          <div className="left">
-            <div className="section-header">
-              <h2>Job Description</h2>
-              {/* <span className="required">Required</span> */}
-            </div>
-            <textarea
-              name="jobDescription"
-              id="jobDescription"
-              value={jobDesc}
-              onChange={handleJobDescChange}
-              placeholder="paste the job description here..."
-              maxLength={5000}
-              required
-            ></textarea>
-            <div className="char-count">{charCount} / 5000</div>
-          </div>
-
-          <div className="right">
-            <div className="input-group">
-              <div className="section-header">
-                <span className="icon"></span>
-                <h2>Your Info</h2>
-              </div>
-              <p className='highlight' >Upload Your Resume <small className='note'>(optional)</small></p>
-              <div className="upload-area">
-                <label htmlFor="resume" className='file-label'>
-                  <div className="upload-content">
-                    <span className="upload-icon"></span>
-                    <p>{resumeFile ? resumeFile.name : '  Upload your file here..'}</p>
-                    <small>PDF, DOC</small>
-                  </div>
-                </label>
-                <input hidden
-                  type="file"
-                  name="resume"
-                  id="resume"
-                  accept=".pdf,.doc,.docx"
-                  onChange={handleResumeChange}
-                />
-              </div>
-
-              <div className="divider">OR</div>
-
-              <div className="input-group">
-                <label htmlFor="selfDescription">Tell us about yourself</label>
-                <textarea
-                  name="selfDescription"
-                  id="selfDescription"
-                  value={selfDescription}
-                  onChange={handleSelfDescriptionChange}
-                  placeholder="Just describe what you know - skills, experience, years in tech, etc..."
-                ></textarea>
-              </div>
-
-              <div className="info-note">
-                <input type="checkbox" id="useResume" defaultChecked disabled />
-                <label htmlFor="useResume">Resume or self description required</label>
-              </div>
-            </div>
-
-            <button type="submit" className="button primary-button" disabled={loading}>
-              {loading ? 'Generating...' : 'Generate Strategy'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </main>
-  );
-};
-
-export default Home;
+export default Home

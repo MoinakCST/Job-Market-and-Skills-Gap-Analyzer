@@ -1,16 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
-import { useInterview } from '../hooks/useInterview'
 import '../styles/interview.scss'
+import { useInterview } from '../hooks/useInterview.js'
+import { useNavigate, useParams } from 'react-router'
 
 
-const SearchIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-)
-
-const CloseIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-)
 
 const NAV_ITEMS = [
     { id: 'technical', label: 'Technical Questions', icon: (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></svg>) },
@@ -63,28 +56,9 @@ const RoadMapDay = ({ day }) => (
     </div>
 )
 
-const JobDescriptionModal = ({ jobDescription, onClose }) => (
-    <div className='jd-modal-overlay' onClick={onClose}>
-        <div className='jd-modal' onClick={(e) => e.stopPropagation()}>
-            <div className='jd-modal__header'>
-                <h3>Job Description</h3>
-                <button className='jd-modal__close' onClick={onClose} aria-label="Close">
-                    <CloseIcon />
-                </button>
-            </div>
-            <div className='jd-modal__body'>
-                {jobDescription.split('\n').map((line, i) => (
-                    line.trim() ? <p key={i}>{line}</p> : null
-                ))}
-            </div>
-        </div>
-    </div>
-)
-
 // ── Main Component ────────────────────────────────────────────────────────────
 const Interview = () => {
     const [ activeNav, setActiveNav ] = useState('technical')
-    const [ showJobDesc, setShowJobDesc ] = useState(false)
     const { report, getReportById, loading, getResumePdf } = useInterview()
     const { interviewId } = useParams()
 
@@ -107,10 +81,6 @@ const Interview = () => {
     const scoreColor =
         report.matchScore >= 80 ? 'score--high' :
             report.matchScore >= 60 ? 'score--mid' : 'score--low'
-
-    const scoreLabel =
-        report.matchScore >= 80 ? 'Strong match for this role' :
-            report.matchScore >= 60 ? 'Decent match, some gaps to close' : 'Significant prep needed'
 
 
     return (
@@ -144,15 +114,6 @@ const Interview = () => {
 
                 {/* ── Center Content ── */}
                 <main className='interview-content'>
-                    <button
-                        className='view-jd-btn'
-                        onClick={() => setShowJobDesc(true)}
-                        title="View job description"
-                        aria-label="View job description"
-                    >
-                        <SearchIcon />
-                    </button>
-
                     {activeNav === 'technical' && (
                         <section>
                             <div className='content-header'>
@@ -208,7 +169,7 @@ const Interview = () => {
                             <span className='match-score__value'>{report.matchScore}</span>
                             <span className='match-score__pct'>%</span>
                         </div>
-                        <p className='match-score__sub'>{scoreLabel}</p>
+                        <p className='match-score__sub'>Strong match for this role</p>
                     </div>
 
                     <div className='sidebar-divider' />
@@ -227,13 +188,6 @@ const Interview = () => {
 
                 </aside>
             </div>
-
-            {showJobDesc && (
-                <JobDescriptionModal
-                    jobDescription={report.jobDescription}
-                    onClose={() => setShowJobDesc(false)}
-                />
-            )}
         </div>
     )
 }
