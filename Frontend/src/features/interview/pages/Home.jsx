@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import "../styles/home.scss"
 
+
 const Home = () => {
   console.log("HOME COMPONENT RENDERED");
   const navigate = useNavigate()
