@@ -39,17 +39,4 @@ interviewRouter.get("/report/:interviewId",authMiddleware.authUser, interviewCon
 interviewRouter.post("/resume/pdf/:interviewReportId",authMiddleware.authUser, interviewController.generateResumePdfController)
 
 
-/**
- * @routes DELETE/api/interview/reports/keep-latest-five
- * @description delete older interview reports and keep only the latest five
- * @access private
- */
-interviewRouter.delete("/reports/keep-latest-five",authMiddleware.authUser, interviewController.keepLatestFiveInterviewReportsController)
-
-
-
-
-
-
-
 module.exports = interviewRouter

@@ -57,12 +57,3 @@ export const generateResumePdf = async ({ interviewReportId }) => {
 
     return response
 }
-
-/**
- * @description Delete older reports and keep only the latest five.
- */
-export const keepLatestFiveInterviewReports = async () => {
-    const response = await api.delete("/api/interview/reports/keep-latest-five")
-
-    return response.data
-}

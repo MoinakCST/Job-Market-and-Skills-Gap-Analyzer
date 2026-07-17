@@ -1,4 +1,4 @@
-import { getAllInterviewReports, generateInterviewReport, getInterviewReportById, generateResumePdf, keepLatestFiveInterviewReports } from "../services/interview.api"
+import { getAllInterviewReports, generateInterviewReport, getInterviewReportById, generateResumePdf } from "../services/interview.api"
 import { useContext, useEffect } from "react"
 import { InterviewContext } from "../interview.context"
 import { useParams } from "react-router"
@@ -86,21 +86,6 @@ export const useInterview = () => {
         }
     }
 
-    const keepOnlyFiveReports = async () => {
-        setLoading(true)
-        let response = null
-        try {
-            response = await keepLatestFiveInterviewReports()
-            await getReports()
-            return response
-        } catch (error) {
-            console.log(error)
-            throw error
-        } finally {
-            setLoading(false)
-        }
-    }
-
     useEffect(() => {
         if (interviewId) {
             getReportById(interviewId)
@@ -109,6 +94,6 @@ export const useInterview = () => {
         }
     }, [ interviewId ])
 
-    return { loading, report, reports, generateReport, getReportById, getReports, getResumePdf, keepOnlyFiveReports }
+    return { loading, report, reports, generateReport, getReportById, getReports, getResumePdf }
 
 }

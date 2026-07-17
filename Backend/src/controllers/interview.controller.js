@@ -170,6 +170,31 @@ function sanitizeFilename(value) {
         .replace(/\s+/g, "_");
 }
 
+async function pruneInterviewReportsToLatestFive(userId) {
+    const reports = await interviewReportModel.find({ user: userId })
+        .sort({ createdAt: -1, _id: -1 })
+        .select("_id");
+
+    const reportsToDelete = reports.slice(5).map((report) => report._id);
+
+    if (reportsToDelete.length === 0) {
+        return {
+            deletedCount: 0,
+            remainingCount: reports.length
+        };
+    }
+
+    const deleteResult = await interviewReportModel.deleteMany({
+        user: userId,
+        _id: { $in: reportsToDelete }
+    });
+
+    return {
+        deletedCount: deleteResult.deletedCount || 0,
+        remainingCount: Math.max(reports.length - (deleteResult.deletedCount || 0), 0)
+    };
+}
+
 /**
  * @description  controller to generate interview report based on user self description ,resume and job description
  */
@@ -249,6 +274,8 @@ async function generateInterviewReportController(req, res) {
             title: finalReportTitle
         });
 
+        await pruneInterviewReportsToLatestFive(req.user.id);
+
         console.log("Interview report generated and saved successfully!");
 
         return res.status(201).json({
@@ -303,6 +330,7 @@ async function generateInterviewReportByIdController(req,res){
 
 async function getAllInterviewReportController(req,res){
     try {
+        await pruneInterviewReportsToLatestFive(req.user.id);
         const interviewReports = await interviewReportModel.find({user:req.user.id}).sort({createdAt: -1 }).
         select("-resume -selfDescription -jobDescription -__v -technicalQuestions.answer -technicalQuestions.explanation -behavioralQuestions -skillGaps -preparationPlan");
 
@@ -353,45 +381,10 @@ async function generateResumePdfController(req, res) {
     }
 }
 
-async function keepLatestFiveInterviewReportsController(req, res) {
-    try {
-        const reports = await interviewReportModel.find({ user: req.user.id })
-            .sort({ createdAt: -1, _id: -1 })
-            .select("_id");
-
-        const reportsToDelete = reports.slice(5).map((report) => report._id);
-
-        if (reportsToDelete.length === 0) {
-            return res.status(200).json({
-                message: "You already have 5 or fewer interview reports.",
-                deletedCount: 0,
-                remainingCount: reports.length
-            });
-        }
-
-        const deleteResult = await interviewReportModel.deleteMany({
-            user: req.user.id,
-            _id: { $in: reportsToDelete }
-        });
-
-        return res.status(200).json({
-            message: "Older interview reports deleted successfully.",
-            deletedCount: deleteResult.deletedCount || 0,
-            remainingCount: Math.max(reports.length - (deleteResult.deletedCount || 0), 0)
-        });
-    } catch (err) {
-        return res.status(500).json({
-            message: "Failed to keep the latest 5 interview reports.",
-            error: err.message
-        });
-    }
-}
-
 
 module.exports = {
     generateInterviewReportController,
     getAllInterviewReportController,
     generateInterviewReportByIdController,
-    generateResumePdfController,
-    keepLatestFiveInterviewReportsController
+    generateResumePdfController
 };
