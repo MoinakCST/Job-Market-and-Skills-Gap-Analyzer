@@ -353,10 +353,45 @@ async function generateResumePdfController(req, res) {
     }
 }
 
+async function keepLatestFiveInterviewReportsController(req, res) {
+    try {
+        const reports = await interviewReportModel.find({ user: req.user.id })
+            .sort({ createdAt: -1, _id: -1 })
+            .select("_id");
+
+        const reportsToDelete = reports.slice(5).map((report) => report._id);
+
+        if (reportsToDelete.length === 0) {
+            return res.status(200).json({
+                message: "You already have 5 or fewer interview reports.",
+                deletedCount: 0,
+                remainingCount: reports.length
+            });
+        }
+
+        const deleteResult = await interviewReportModel.deleteMany({
+            user: req.user.id,
+            _id: { $in: reportsToDelete }
+        });
+
+        return res.status(200).json({
+            message: "Older interview reports deleted successfully.",
+            deletedCount: deleteResult.deletedCount || 0,
+            remainingCount: Math.max(reports.length - (deleteResult.deletedCount || 0), 0)
+        });
+    } catch (err) {
+        return res.status(500).json({
+            message: "Failed to keep the latest 5 interview reports.",
+            error: err.message
+        });
+    }
+}
+
 
 module.exports = {
     generateInterviewReportController,
     getAllInterviewReportController,
     generateInterviewReportByIdController,
-    generateResumePdfController
+    generateResumePdfController,
+    keepLatestFiveInterviewReportsController
 };
