@@ -1,6 +1,5 @@
 const { GoogleGenAI } = require("@google/genai")
 const {z} = require("zod")
-const { zodToJsonSchema } = require ("zod-to-json-schema")
 
 
 
@@ -141,9 +140,10 @@ config: {
           },
           required: ["day", "focus", "tasks"]
         }
-      }
+      },
+      title: { type: "string" }
     },
-    required: ["matchScore", "technicalQuestions", "behavioralQuestions", "skillGaps", "preparationPlan"]
+    required: ["matchScore", "technicalQuestions", "behavioralQuestions", "skillGaps", "preparationPlan", "title"]
   }
 }
 })
@@ -161,9 +161,10 @@ try {
     throw new Error("No text content found in API response")
   }
   
-  const parsedResponse = JSON.parse(responseText)
+  const parsedResponse = interviewReportSchema.parse(JSON.parse(responseText))
   console.log("AI Report Generated Successfully:", {
     matchScore: parsedResponse.matchScore,
+    title: parsedResponse.title,
     technicalQuestionsCount: parsedResponse.technicalQuestions?.length || 0,
     behavioralQuestionsCount: parsedResponse.behavioralQuestions?.length || 0,
     skillGapsCount: parsedResponse.skillGaps?.length || 0,

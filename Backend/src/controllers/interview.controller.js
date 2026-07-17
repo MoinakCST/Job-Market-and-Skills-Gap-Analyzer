@@ -16,9 +16,11 @@ async function generateInterviewReportController(req, res) {
             });
         }
 
-        const { selfDescription, jobDescription } = req.body;
+        const { selfDescription, jobDescription, title } = req.body;
+        const normalizedSelfDescription = typeof selfDescription === "string" ? selfDescription.trim() : "";
+        const normalizedJobDescription = typeof jobDescription === "string" ? jobDescription.trim() : "";
 
-        if (!selfDescription || !jobDescription) {
+        if (!normalizedSelfDescription || !normalizedJobDescription) {
             return res.status(400).json({
                 message: "Self description and job description are required."
             });
@@ -35,10 +37,10 @@ async function generateInterviewReportController(req, res) {
 
         console.log("========== REQUEST BODY ==========");
         console.log("SELF DESCRIPTION:");
-        console.log(selfDescription);
+        console.log(normalizedSelfDescription);
 
         console.log("JOB DESCRIPTION:");
-        console.log(jobDescription.substring(0, 300));
+        console.log(normalizedJobDescription.substring(0, 300));
 
         console.log("========== PDF TEXT PREVIEW ==========");
         console.log(resumeData.text.substring(0, 500));
@@ -52,20 +54,31 @@ async function generateInterviewReportController(req, res) {
 
         const interviewReportByAi = await generateInterviewReport({
             resume: resumeContent.text,
-            selfDescription,
-            jobDescription
+            selfDescription: normalizedSelfDescription,
+            jobDescription: normalizedJobDescription
         });
 
         console.log("AI Report Generated Successfully");
 
         console.log("Saving interview report to database...");
 
+        const normalizedRequestedTitle = typeof title === "string" ? title.trim() : "";
+        const normalizedGeneratedTitle = typeof interviewReportByAi.title === "string" ? interviewReportByAi.title.trim() : "";
+        const normalizedJobDescriptionTitle = normalizedJobDescription
+            .split("\n")
+            .map((line) => line.trim())
+            .find((line) => line.length > 0)
+            ?.slice(0, 150) || "";
+
+        const finalReportTitle = normalizedRequestedTitle || normalizedGeneratedTitle || normalizedJobDescriptionTitle;
+
         const interviewReport = await interviewReportModel.create({
             user: req.user.id,
             resume: resumeContent.text,
-            selfDescription,
-            jobDescription,
-            ...interviewReportByAi
+            selfDescription: normalizedSelfDescription,
+            jobDescription: normalizedJobDescription,
+            ...interviewReportByAi,
+            title: finalReportTitle
         });
 
         console.log("Interview report generated and saved successfully!");
