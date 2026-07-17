@@ -64,15 +64,23 @@ export const useInterview = () => {
         let response = null
         try {
             response = await generateResumePdf({ interviewReportId })
-            const url = window.URL.createObjectURL(new Blob([ response ], { type: "application/pdf" }))
+            const pdfBlob = response.data
+            const contentDisposition = response.headers?.[ "content-disposition" ] || ""
+            const fileNameMatch = contentDisposition.match(/filename="([^"]+)"/i)
+            const fileName = fileNameMatch?.[ 1 ] || `resume_${interviewReportId}.pdf`
+
+            const url = window.URL.createObjectURL(new Blob([ pdfBlob ], { type: "application/pdf" }))
             const link = document.createElement("a")
             link.href = url
-            link.setAttribute("download", `resume_${interviewReportId}.pdf`)
+            link.setAttribute("download", fileName)
             document.body.appendChild(link)
             link.click()
+            link.remove()
+            window.URL.revokeObjectURL(url)
         }
         catch (error) {
             console.log(error)
+            throw error
         } finally {
             setLoading(false)
         }

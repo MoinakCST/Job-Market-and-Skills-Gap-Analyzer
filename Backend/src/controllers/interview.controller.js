@@ -2,6 +2,174 @@ const generateInterviewReport = require("../services/ai.service");
 const interviewReportModel = require("../models/interviewReport.model");
 const pdfparse = require("pdf-parse");
 
+function escapePdfText(value) {
+    return value
+        .replace(/\\/g, "\\\\")
+        .replace(/\(/g, "\\(")
+        .replace(/\)/g, "\\)");
+}
+
+function wrapTextToLines(text, maxCharsPerLine) {
+    const rawLines = text.split("\n");
+    const wrappedLines = [];
+
+    for (const rawLine of rawLines) {
+        const normalized = rawLine.trimEnd();
+        if (!normalized) {
+            wrappedLines.push("");
+            continue;
+        }
+
+        const words = normalized.split(/\s+/);
+        let currentLine = "";
+
+        for (const word of words) {
+            if (!currentLine) {
+                if (word.length <= maxCharsPerLine) {
+                    currentLine = word;
+                } else {
+                    for (let index = 0; index < word.length; index += maxCharsPerLine) {
+                        wrappedLines.push(word.slice(index, index + maxCharsPerLine));
+                    }
+                }
+                continue;
+            }
+
+            const candidate = `${currentLine} ${word}`;
+            if (candidate.length <= maxCharsPerLine) {
+                currentLine = candidate;
+                continue;
+            }
+
+            wrappedLines.push(currentLine);
+            if (word.length <= maxCharsPerLine) {
+                currentLine = word;
+            } else {
+                currentLine = "";
+                for (let index = 0; index < word.length; index += maxCharsPerLine) {
+                    wrappedLines.push(word.slice(index, index + maxCharsPerLine));
+                }
+            }
+        }
+
+        if (currentLine) {
+            wrappedLines.push(currentLine);
+        }
+    }
+
+    return wrappedLines;
+}
+
+function buildSimplePdfBuffer(text) {
+    const normalizedText = (typeof text === "string" ? text : "")
+        .replace(/\r\n/g, "\n")
+        .replace(/[^\x09\x0A\x0D\x20-\x7E]/g, "?");
+
+    const lines = wrapTextToLines(normalizedText, 92);
+    const linesPerPage = 48;
+    const pages = [];
+
+    for (let index = 0; index < lines.length; index += linesPerPage) {
+        pages.push(lines.slice(index, index + linesPerPage));
+    }
+
+    if (pages.length === 0) {
+        pages.push([ "No resume text available." ]);
+    }
+
+    const objects = [];
+    const catalogObjectId = 1;
+    const pagesObjectId = 2;
+    const fontObjectId = 3;
+
+    const pageObjectIds = [];
+    const contentObjectIds = [];
+
+    let nextObjectId = 4;
+    for (let pageIndex = 0; pageIndex < pages.length; pageIndex += 1) {
+        contentObjectIds.push(nextObjectId);
+        pageObjectIds.push(nextObjectId + 1);
+        nextObjectId += 2;
+    }
+
+    objects.push({
+        id: catalogObjectId,
+        content: `<< /Type /Catalog /Pages ${pagesObjectId} 0 R >>`
+    });
+
+    objects.push({
+        id: pagesObjectId,
+        content: `<< /Type /Pages /Count ${pages.length} /Kids [${pageObjectIds.map((id) => `${id} 0 R`).join(" ")}] >>`
+    });
+
+    objects.push({
+        id: fontObjectId,
+        content: "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"
+    });
+
+    for (let pageIndex = 0; pageIndex < pages.length; pageIndex += 1) {
+        const pageLines = pages[pageIndex];
+        const streamLines = [
+            "BT",
+            "/F1 11 Tf",
+            "14 TL",
+            "50 790 Td"
+        ];
+
+        pageLines.forEach((line, lineIndex) => {
+            const safeLine = escapePdfText(line);
+            if (lineIndex === 0) {
+                streamLines.push(`(${safeLine}) Tj`);
+                return;
+            }
+            streamLines.push("T*");
+            streamLines.push(`(${safeLine}) Tj`);
+        });
+
+        streamLines.push("ET");
+        const streamContent = `${streamLines.join("\n")}\n`;
+
+        objects.push({
+            id: contentObjectIds[pageIndex],
+            content: `<< /Length ${Buffer.byteLength(streamContent, "utf8")} >>\nstream\n${streamContent}endstream`
+        });
+
+        objects.push({
+            id: pageObjectIds[pageIndex],
+            content: `<< /Type /Page /Parent ${pagesObjectId} 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 ${fontObjectId} 0 R >> >> /Contents ${contentObjectIds[pageIndex]} 0 R >>`
+        });
+    }
+
+    let pdf = "%PDF-1.4\n";
+    const offsets = [ 0 ];
+
+    for (const object of objects) {
+        offsets.push(Buffer.byteLength(pdf, "utf8"));
+        pdf += `${object.id} 0 obj\n${object.content}\nendobj\n`;
+    }
+
+    const xrefStart = Buffer.byteLength(pdf, "utf8");
+    const totalObjects = objects.length + 1;
+
+    pdf += `xref\n0 ${totalObjects}\n`;
+    pdf += "0000000000 65535 f \n";
+    for (let index = 1; index < offsets.length; index += 1) {
+        pdf += `${String(offsets[index]).padStart(10, "0")} 00000 n \n`;
+    }
+
+    pdf += `trailer\n<< /Size ${totalObjects} /Root ${catalogObjectId} 0 R >>\n`;
+    pdf += `startxref\n${xrefStart}\n%%EOF`;
+
+    return Buffer.from(pdf, "utf8");
+}
+
+function sanitizeFilename(value) {
+    return value
+        .replace(/[^\w.\- ]+/g, " ")
+        .trim()
+        .replace(/\s+/g, "_");
+}
+
 /**
  * @description  controller to generate interview report based on user self description ,resume and job description
  */
@@ -104,7 +272,29 @@ async function generateInterviewReportController(req, res) {
 
 
 async function generateInterviewReportByIdController(req,res){
-    
+    try {
+        const { interviewId } = req.params;
+        const interviewReport = await interviewReportModel.findOne({
+            _id: interviewId,
+            user: req.user.id
+        });
+
+        if (!interviewReport) {
+            return res.status(404).json({
+                message: "Interview report not found."
+            });
+        }
+
+        return res.status(200).json({
+            message: "Interview report fetched successfully.",
+            interviewReport
+        });
+    } catch (err) {
+        return res.status(500).json({
+            message: "Failed to fetch interview report.",
+            error: err.message
+        });
+    }
 }
 
 /**
@@ -112,16 +302,61 @@ async function generateInterviewReportByIdController(req,res){
  */
 
 async function getAllInterviewReportController(req,res){
-    const interviewReports = await interviewReportModel.find({user:req.user.id}).sort({createdAt: -1 }).
-    select("-resume -selfDescription -jobDescription -__v -technicalQuestions.answer -technicalQuestions.explanation -behavioralQuestions -skillGaps -preparationPlan")
+    try {
+        const interviewReports = await interviewReportModel.find({user:req.user.id}).sort({createdAt: -1 }).
+        select("-resume -selfDescription -jobDescription -__v -technicalQuestions.answer -technicalQuestions.explanation -behavioralQuestions -skillGaps -preparationPlan");
 
-    res.status(200).json({
-        message:"Interview reports fetched succcessfully.",
-        interviewReports
-    })
+        return res.status(200).json({
+            message:"Interview reports fetched succcessfully.",
+            interviewReports
+        });
+    } catch (err) {
+        return res.status(500).json({
+            message: "Failed to fetch interview reports.",
+            error: err.message
+        });
+    }
+}
+
+async function generateResumePdfController(req, res) {
+    try {
+        const { interviewReportId } = req.params;
+        const interviewReport = await interviewReportModel.findOne({
+            _id: interviewReportId,
+            user: req.user.id
+        }).select("resume title");
+
+        if (!interviewReport) {
+            return res.status(404).json({
+                message: "Interview report not found."
+            });
+        }
+
+        if (!interviewReport.resume || !interviewReport.resume.trim()) {
+            return res.status(400).json({
+                message: "Resume text is not available for this report."
+            });
+        }
+
+        const pdfBuffer = buildSimplePdfBuffer(interviewReport.resume);
+        const safeTitle = sanitizeFilename(interviewReport.title || "resume");
+        const fileName = `${safeTitle}.pdf`;
+
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+        return res.status(200).send(pdfBuffer);
+    } catch (err) {
+        return res.status(500).json({
+            message: "Failed to generate resume PDF.",
+            error: err.message
+        });
+    }
 }
 
 
 module.exports = {
-    generateInterviewReportController
+    generateInterviewReportController,
+    getAllInterviewReportController,
+    generateInterviewReportByIdController,
+    generateResumePdfController
 };

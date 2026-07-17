@@ -23,7 +23,13 @@ $severity-medium: #f5a623;
 $severity-low: #3fb950;
 
 *::-webkit-scrollbar {
-    display: none;
+    width: 8px;
+    height: 8px;
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: rgba($text-muted, 0.35);
+    border-radius: 999px;
 }
 
 // ── Loading State ─────────────────────────────────────────────────────────────
@@ -147,9 +153,7 @@ $severity-low: #3fb950;
     flex: 1;
     position: relative;
     padding: 1.75rem 2rem;
-    overflow-y: auto;
     min-height: initial;
-    max-height: calc(100vh - 3rem);
     padding-bottom: 5rem;
 
     section {
