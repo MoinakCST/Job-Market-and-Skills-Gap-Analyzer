@@ -1,5 +1,7 @@
 const generateInterviewReport = require("../services/ai.service");
 const interviewReportModel = require("../models/interviewReport.model");
+// Local lightweight ML scoring service (baseline model).
+const calculateMlMatchScore = require("../services/mlMatchScore.service");
 const pdfparse = require("pdf-parse");
 
 function escapePdfText(value) {
@@ -243,6 +245,13 @@ async function generateInterviewReportController(req, res) {
             text: resumeData.text
         };
 
+        // Generate model-based match insights before AI report generation.
+        const mlInsights = calculateMlMatchScore({
+            resume: resumeContent.text,
+            selfDescription: normalizedSelfDescription,
+            jobDescription: normalizedJobDescription
+        });
+
         console.log("Resume parsed, calling AI service...");
 
         const interviewReportByAi = await generateInterviewReport({
@@ -271,6 +280,8 @@ async function generateInterviewReportController(req, res) {
             selfDescription: normalizedSelfDescription,
             jobDescription: normalizedJobDescription,
             ...interviewReportByAi,
+            // Persist local model output alongside AI output for transparency.
+            mlInsights,
             title: finalReportTitle
         });
 

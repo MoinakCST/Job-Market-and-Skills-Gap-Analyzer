@@ -135,6 +135,31 @@ const interviewReportSchema = new mongoose.Schema({
     min:0,
     max:100,
    },
+   // Stores outputs from the local baseline ML model.
+   mlInsights: {
+    model: {
+     type: String
+    },
+    version: {
+     type: String
+    },
+    matchScore: {
+     type: Number,
+     min: 0,
+     max: 100
+    },
+    keywordCoverage: {
+     type: Number,
+     min: 0,
+     max: 1
+    },
+    matchedKeywords: [{
+     type: String
+    }],
+    missingKeywords: [{
+     type: String
+    }]
+   },
 
     technicalQuestions: [technicalQuestionSchema ],
     behavioralQuestions:[behaviouralQuestionSchema ],

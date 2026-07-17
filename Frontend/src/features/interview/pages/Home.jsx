@@ -81,8 +81,6 @@ const Home = () => {
                             />
                         </label>
 
-                        <div className='or-divider'><span>OR</span></div>
-
                         <div className='self-description'>
                             <label className='field__label' htmlFor='selfDescription'>Quick Self-Description</label>
                             <textarea
